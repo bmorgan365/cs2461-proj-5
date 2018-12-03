@@ -230,6 +230,7 @@ void hm_rem_stop(struct hashmap* hm){
             trav = trav->next;
         }
     }
+    free(trav);
 }
 
 float idf(struct hashmap* hm, char* word, char* document_id){
@@ -237,23 +238,30 @@ float idf(struct hashmap* hm, char* word, char* document_id){
 }
 
 void hm_query(struct hashmap* hm, char* query){
-    int index;
+    int index, offset;
     char* searchQ = malloc(strlen(query) + 1);
     strcpy(searchQ, query);
-    char curWord[15];
-    for(index = 0; searchQ[index] != '\0'; index++){
-        if(searchQ[index] == ' '){
-            curWord[index] = '\0';
-            //search(hm, curWord);
-            printf("%s\n", curWord);
-            index = 0;
-        }else{
-            curWord[index] = searchQ[index];
-        }
+    char* c;
+    c = strtok(searchQ, " ");
+    while(c != NULL){
+        printf("%s\n", c);
+        //search(hash, c);
+        c = strtok(NULL, " ");
     }
-    //hm_rem_stop(hm);
+    free(searchQ);
 }
 
 void search(struct hashmap* hm, char* word){
+    hm_rem_stop(hm);
+    int bucket = hash(hm, word, "D1");  //placeholder, not used
+    struct llnode* trav = (struct llnode*) malloc(sizeof(struct llnode));
+    if(hm->map[bucket] == NULL){
+        return;
+    }
+    trav = hm->map[bucket];
+    while(trav->next != NULL){
+        //count occurence of word, if 3 then it appears
+        // in all 3 documents -> df = 3
+    }
 
 }
