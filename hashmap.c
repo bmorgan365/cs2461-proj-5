@@ -225,9 +225,6 @@ void hm_rem_stop(struct hashmap* hm){
             fromD1 = hm_get(hm, trav->word, "D1");
             fromD2 = hm_get(hm, trav->word, "D2");
             fromD3 = hm_get(hm, trav->word, "D3");
-            if((fromD1 + fromD2 + fromD3) >= 3){
-                
-            }
             //compute idf
             //if idf == 0, remove ((w(o(r)d),)document_id) from all documents
             trav = trav->next;
@@ -244,13 +241,15 @@ void hm_query(struct hashmap* hm, char* query){
     char* searchQ = malloc(strlen(query) + 1);
     strcpy(searchQ, query);
     char curWord[15];
-    for(index = 0; searchQ != '\0'; index++){
-        if(searchQ == ' '){
+    for(index = 0; searchQ[index] != '\0'; index++){
+        if(searchQ[index] == ' '){
             curWord[index] = '\0';
-            search(hm, curWord);
-
+            //search(hm, curWord);
+            printf("%s\n", curWord);
+            index = 0;
+        }else{
+            curWord[index] = searchQ[index];
         }
-
     }
     //hm_rem_stop(hm);
 }

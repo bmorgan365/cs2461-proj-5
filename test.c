@@ -69,10 +69,11 @@ int main(void){
         printf("Parse another document?\nEnter 'y' for yes, any other character to quit. . . ");
         scanf(" %c", &cont);
     }while(cont == 'y' || cont == 'Y');
-    printHash(hash);
-    printf("hm_get(hash, \"computer\", \"D1\") = %d\n", hm_get(hash, "computer", "D1"));
-    printf("hm_get(hash, \"homework\", \"D3\") = %d\n", hm_get(hash, "homework", "D3"));
-    hm_remove(hash, "computer", "D1");
+    hm_query(hash, "I like potatoes");
+    //printHash(hash);
+    //printf("hm_get(hash, \"computer\", \"D1\") = %d\n", hm_get(hash, "computer", "D1"));
+    //printf("hm_get(hash, \"homework\", \"D3\") = %d\n", hm_get(hash, "homework", "D3"));
+    //hm_remove(hash, "computer", "D1");
     hm_destroy(hash);                                 //deallocate hashmap once done with client
     printf("Hashmap deleted. Exiting. . .\n");
     return 0; 

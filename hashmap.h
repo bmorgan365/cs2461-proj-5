@@ -23,5 +23,5 @@ int hash(struct hashmap* hm, char* word, char* document_id);
 void hm_rem_stop(struct hashmap* hm);
 float idf(struct hashmap* hm, char* word, char* document_id);
 void hm_query(struct hashmap* hm, char* query);
-void search(struct hashmap* hm, char* word)
+void search(struct hashmap* hm, char* word);
 #endif
