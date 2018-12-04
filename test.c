@@ -18,6 +18,7 @@ int main(void){
     char filename [10];              // char[] to store filename from user input
     char** wordDbase;               // "string" array with encountered words, 10 words, 15 characters each
     FILE *document;                 // FILE* to access files for data input
+    char toSend [15];               //word to pass in parameter
 
     for(i = 0; i < 15; i++){                                        // initialize "num word" values to zero
         dBaseVals[i] = 0;
@@ -44,22 +45,25 @@ int main(void){
                 curWord[index] = curChar;
                 index++;
             }else{
-                curWord[index] = '\0';                    
-                for(i = 0; i < 15; i++){
-                    dBaseCh = strcmp(curWord, wordDbase[i]);            // use strcmp to determine whether or not current word exists in database
-                    if(dBaseCh == 0){                                   
-                        dBaseVals[i]++;                                 // if it exists, increment the respective index in the int[] keeping track
-                        hm_put(hash, wordDbase[i], docID, dBaseVals[i]);    //puts current word, document id, num occurrences into hashmap
-                        break;
-                    }else if(strcmp(wordDbase[i], "") == 0){
-                        strcpy(wordDbase[i], curWord);
-                        dBaseVals[i]++;
-                        hm_put(hash, wordDbase[i], docID, dBaseVals[i]);    //puts current word, document id, num occurrences into hashmap
-                        break;
-                    }else{
-                        continue;
-                    }
-                }
+                curWord[index] = '\0';
+                //strcpy(toSend, curWord);
+                hm_put(hash, curWord, docID, 1);
+                // curWord[index] = '\0';                    
+                // for(i = 0; i < 15; i++){
+                //     dBaseCh = strcmp(curWord, wordDbase[i]);            // use strcmp to determine whether or not current word exists in database
+                //     if(dBaseCh == 0){                                   
+                //         dBaseVals[i]++;                                 // if it exists, increment the respective index in the int[] keeping track
+                //         hm_put(hash, wordDbase[i], docID, 1);//dBaseVals[i]);    //puts current word, document id, num occurrences into hashmap
+                //         break;
+                //     }else if(strcmp(wordDbase[i], "") == 0){
+                //         strcpy(wordDbase[i], curWord);
+                //         dBaseVals[i]++;
+                //         hm_put(hash, wordDbase[i], docID, 1);// dBaseVals[i]);    //puts current word, document id, num occurrences into hashmap
+                //         break;
+                //     }else{
+                //         continue;
+                //     }
+                // }
                 index = 0;
             }
                         
@@ -69,11 +73,8 @@ int main(void){
         printf("Parse another document?\nEnter 'y' for yes, any other character to quit. . . ");
         scanf(" %c", &cont);
     }while(cont == 'y' || cont == 'Y');
-    hm_query(hash, "I like potatoes");
-    //printHash(hash);
-    //printf("hm_get(hash, \"computer\", \"D1\") = %d\n", hm_get(hash, "computer", "D1"));
-    //printf("hm_get(hash, \"homework\", \"D3\") = %d\n", hm_get(hash, "homework", "D3"));
-    //hm_remove(hash, "computer", "D1");
+    //hm_query(hash, "I like potatoes");
+    printHash(hash);
     hm_destroy(hash);                                 //deallocate hashmap once done with client
     printf("Hashmap deleted. Exiting. . .\n");
     return 0; 
@@ -90,10 +91,11 @@ void printHash(struct hashmap* h){
             printf("Empty\n");
         }else{
             struct llnode* entry = h->map[i];
-            while(entry != NULL){
+            while(entry->next != NULL){
             printf("Word: %s | DocID: %s | Occurrences: %d\n", entry->word, entry->document_id, entry->termFrequency);
             entry = entry->next;
             }
+            printf("Word: %s | DocID: %s | Occurrences: %d\n", entry->word, entry->document_id, entry->termFrequency);
         }
     }
 }

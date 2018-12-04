@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 /**
  * Allocate a new HashMap with the specified number of buckets
@@ -76,14 +77,16 @@ int hm_get(struct hashmap* hm, char* word, char* document_id){
 void hm_put(struct hashmap* hm, char* word, char* document_id, int termFrequency){
     int docSame, wordSame;                                  //stores value of strcmp                 
     int bucket = hash(hm, word, document_id);               //determines bucket
-    char* doc = malloc(strlen(document_id) + 1);            //copy "word" so it persists through mult. file entry
-    strcpy(doc, document_id);                               //copied "word"
+    char* d = malloc(strlen(document_id) + 1);            //copy "word" so it persists through mult. file entry
+    strcpy(d, document_id);                               //copied "word"
+    char* w = malloc(strlen(word) + 1);
+    strcpy(w, word);
     struct llnode* trav;                                    //used for traversal
     struct llnode* add;                                     //new llnode with parameter attributes
     add = (struct llnode*) malloc(sizeof(struct llnode));   
-    add->document_id = doc;
+    add->document_id = d;
     add->termFrequency = termFrequency;
-    add->word = word;
+    add->word = w;
     add->next = NULL;
     
     /*
@@ -108,7 +111,7 @@ void hm_put(struct hashmap* hm, char* word, char* document_id, int termFrequency
         docSame = strcmp(trav->document_id, add->document_id);
         wordSame = strcmp(trav->word, add->word);
         if(!docSame && !wordSame){
-            trav->termFrequency = add->termFrequency;
+            trav->termFrequency++;
             return;
         }
         trav = trav->next;
@@ -121,12 +124,15 @@ void hm_put(struct hashmap* hm, char* word, char* document_id, int termFrequency
     docSame = strcmp(trav->document_id, add->document_id);
     wordSame = strcmp(trav->word, add->word);
     if(!docSame && !wordSame){
-        trav->termFrequency = add->termFrequency;
+        trav->termFrequency++;
         return;
     }else{
         trav->next = add;
         hm->num_elements++;
     }
+    //free(d);
+    //free(w);
+    //free(add);
 }
 
 /**
@@ -201,40 +207,45 @@ int hash(struct hashmap* hm, char* word, char* document_id){
         word++;
     }
     word -= resetCharPtr;
-    // resetCharPtr = 0;                    //ignore docID so that words from same document appear in same bucket
-    // while(*document_id != '\0'){
-    //     wordSum += *document_id;
-    //     resetCharPtr++;
-    //     document_id++;
-    // }
-    // document_id -= resetCharPtr;
     return (wordSum % hm->num_buckets);
 }
 
 void hm_rem_stop(struct hashmap* hm){
-    int i;
-    struct llnode* trav = (struct llnode*) malloc(sizeof(struct llnode));
-    int fromD1, fromD2, fromD3;
+    int fromD1, fromD2, fromD3, i, df;
+    float idf;
+    struct llnode* trav;
+    char* curWord;
 
     for(i = 0; i < hm->num_buckets; i++){
         if(hm->map[i] == NULL){
-            continue;
+            continue; 
         }
         trav = hm->map[i];
-        while(trav->next != NULL){
-            fromD1 = hm_get(hm, trav->word, "D1");
-            fromD2 = hm_get(hm, trav->word, "D2");
-            fromD3 = hm_get(hm, trav->word, "D3");
-            //compute idf
-            //if idf == 0, remove ((w(o(r)d),)document_id) from all documents
+        while(trav != NULL){
+            df = 0;
+            if(hm_get(hm, trav->word, "D1") != -1){
+                df++;
+            }
+            if(hm_get(hm, trav->word, "D2") != -1){
+                df++;
+            }
+            if(hm_get(hm, trav->word, "D3") != -1){
+                df++;
+            }
+
+            if(!df){        //df == 0
+                idf = log(3/1+df);
+            }else{
+                idf = log(3/df);
+            }
+            if(!idf){       //idf == 0
+                hm_remove(hm, trav->word, "D1");
+                hm_remove(hm, trav->word, "D2");
+                hm_remove(hm, trav->word, "D3");
+            }
             trav = trav->next;
         }
     }
-    free(trav);
-}
-
-float idf(struct hashmap* hm, char* word, char* document_id){
-    return 0.0;
 }
 
 void hm_query(struct hashmap* hm, char* query){
@@ -265,3 +276,5 @@ void search(struct hashmap* hm, char* word){
     }
 
 }
+
+//idf = log(3.0/df);
