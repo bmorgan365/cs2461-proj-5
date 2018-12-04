@@ -156,21 +156,20 @@ void hm_remove(struct hashmap* hm, char* word, char* document_id){
 
     prev = NULL;
     cur = hm->map[bucket];
-    docSame = strcmp(cur->document_id, document_id);    //initial values of strcmp
-    wordSame = strcmp(cur->word, word);
-    while(cur->next != NULL && docSame && wordSame){    //while "key" is not equal to parameter or cur->next != NULL, traverse
+    while(cur->next != NULL){                   //} && docSame && wordSame){    //while "key" is not equal to parameter or cur->next != NULL, traverse
         docSame = strcmp(cur->document_id, document_id);
         wordSame = strcmp(cur->word, word);
+        if(!docSame && !wordSame){                          //once traversed, check if the "keys" are the same, if so remove node
+            if(prev == NULL){
+                hm->map[bucket] = cur->next;
+            }else{
+                prev->next = cur->next;
+            }
+            hm->num_elements--;                             //decrement # elements
+            return;
+        }
         prev = cur;
         cur = cur->next;
-    }
-    if(!docSame && !wordSame){                          //once traversed, check if the "keys" are the same, if so remove node
-        if(prev == NULL){
-            hm->map[bucket] = cur->next;
-        }else{
-            prev->next = cur->next;
-        }
-        hm->num_elements--;                             //decrement # elements
     }
 }
 
@@ -211,8 +210,8 @@ int hash(struct hashmap* hm, char* word, char* document_id){
 }
 
 void hm_rem_stop(struct hashmap* hm){
-    int fromD1, fromD2, fromD3, i, df;
-    float idf;
+    int fromD1, fromD2, fromD3, i;
+    float idf, df;
     struct llnode* trav;
     char* curWord;
 
@@ -234,14 +233,15 @@ void hm_rem_stop(struct hashmap* hm){
             }
 
             if(!df){        //df == 0
-                idf = log(3/1+df);
+                idf = log(3.0/1.0+df);
             }else{
-                idf = log(3/df);
+                idf = log(3.0/df);
             }
             if(!idf){       //idf == 0
                 hm_remove(hm, trav->word, "D1");
                 hm_remove(hm, trav->word, "D2");
                 hm_remove(hm, trav->word, "D3");
+
             }
             trav = trav->next;
         }
@@ -253,17 +253,18 @@ void hm_query(struct hashmap* hm, char* query){
     char* searchQ = malloc(strlen(query) + 1);
     strcpy(searchQ, query);
     char* c;
+    hm_rem_stop(hm);
+    printf("removed stop words");
     c = strtok(searchQ, " ");
     while(c != NULL){
         printf("%s\n", c);
         //search(hash, c);
         c = strtok(NULL, " ");
     }
-    free(searchQ);
+    //free(searchQ);
 }
 
 void search(struct hashmap* hm, char* word){
-    hm_rem_stop(hm);
     int bucket = hash(hm, word, "D1");  //placeholder, not used
     struct llnode* trav = (struct llnode*) malloc(sizeof(struct llnode));
     if(hm->map[bucket] == NULL){
