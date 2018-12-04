@@ -88,6 +88,8 @@ int main(void){
     printHash(hash);
     hm_query(hash, "I like potatoes");
     printHash(hash);
+    printf("Computer in D2: %d\n", hm_get(hash, "computer", "D2"));
+    printf("Hardware in D1: %d\n", hm_get(hash, "hardware", "D1"));
     hm_destroy(hash);                                 //deallocate hashmap once done with client
     printf("Hashmap deleted. Exiting. . .\n");
     return 0; 

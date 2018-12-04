@@ -130,9 +130,9 @@ void hm_put(struct hashmap* hm, char* word, char* document_id, int termFrequency
         trav->next = add;
         hm->num_elements++;
     }
-    //free(d);
-    //free(w);
-    //free(add);
+    // free(d);
+    // free(w);
+    // free(add);
 }
 
 /**
@@ -210,8 +210,8 @@ int hash(struct hashmap* hm, char* word, char* document_id){
 }
 
 void hm_rem_stop(struct hashmap* hm){
-    int fromD1, fromD2, fromD3, i;
-    float idf, df;
+    int i, df;
+    float idf;
     struct llnode* trav;
     char* curWord;
 
@@ -222,6 +222,7 @@ void hm_rem_stop(struct hashmap* hm){
         trav = hm->map[i];
         while(trav != NULL){
             df = 0;
+            printf("trav->word = %s\n", trav->word);
             if(hm_get(hm, trav->word, "D1") != -1){
                 df++;
             }
@@ -231,7 +232,7 @@ void hm_rem_stop(struct hashmap* hm){
             if(hm_get(hm, trav->word, "D3") != -1){
                 df++;
             }
-
+            printf("document freq: %d\n", df);
             if(!df){        //df == 0
                 idf = log(3.0/1.0+df);
             }else{
