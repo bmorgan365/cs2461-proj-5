@@ -27,7 +27,7 @@ struct hashmap* hm_create(int num_buckets){
  * If the element is not found, return -1
  */
 int hm_get(struct hashmap* hm, char* word, char* document_id){
-    int bucket = hash(hm, word, document_id);
+    int bucket = hash(hm, word);
     int docSame, wordSame;
     struct llnode* trav;
    
@@ -76,7 +76,7 @@ int hm_get(struct hashmap* hm, char* word, char* document_id){
  */
 void hm_put(struct hashmap* hm, char* word, char* document_id, int termFrequency){
     int docSame, wordSame;                                  //stores value of strcmp                 
-    int bucket = hash(hm, word, document_id);               //determines bucket
+    int bucket = hash(hm, word);               //determines bucket
     char* d = malloc(strlen(document_id) + 1);            //copy "word" so it persists through mult. file entry
     strcpy(d, document_id);                               //copied "word"
     char* w = malloc(strlen(word) + 1);
@@ -139,7 +139,7 @@ void hm_put(struct hashmap* hm, char* word, char* document_id, int termFrequency
  * Remove the key value pair in the HashMap that is associated with the given key
  */
 void hm_remove(struct hashmap* hm, char* word, char* document_id){
-    int bucket = hash(hm, word, document_id);           //hash value
+    int bucket = hash(hm, word);           //hash value
     int wordSame, docSame;                              //store values of strcmp
     struct llnode* prev;                                //used for traversal
     struct llnode* cur;
@@ -171,6 +171,13 @@ void hm_remove(struct hashmap* hm, char* word, char* document_id){
         prev = cur;
         cur = cur->next;
     }
+
+    docSame = strcmp(cur->document_id, document_id);
+    wordSame = strcmp(cur->word, word);
+    if(!docSame && !wordSame){
+        prev->next = NULL;
+        hm->num_elements--;
+    }
 }
 
 /**
@@ -197,7 +204,7 @@ void hm_destroy(struct hashmap* hm){
  * Take the given word and document id and map them to a bucket in the HashMap
  * Sum the ASCII codes of all of the characters then modulo by the # of buckets
  */
-int hash(struct hashmap* hm, char* word, char* document_id){
+int hash(struct hashmap* hm, char* word){
     int wordSum = 0;
     int resetCharPtr = 0;
     while(*word != '\0'){
@@ -209,11 +216,39 @@ int hash(struct hashmap* hm, char* word, char* document_id){
     return (wordSum % hm->num_buckets);
 }
 
-void hm_rem_stop(struct hashmap* hm){
-    int i, df;
+void rank(float** tf_idf_vals, int numTerms, int numDocs){
+    int i, j, df = 0;
+    float idf;
+    float tf_idf;
+
+    for(i = 0; i < numTerms; i++){                   // if term frequency isnt zero, increment document frequency
+        for(j = 0; j < numDocs; j++){
+            if(tf_idf_vals[i][j]){
+                df++;
+            }
+        }
+        idf = log(numDocs/df);
+        for(j = 0; j < numDocs; j++){
+            tf_idf_vals[i][j] = tf_idf_vals[i][j] * idf;
+        }
+    }    
+    float* relevancies = (float*) malloc(sizeof(float) * numDocs);
+    for(i = 0; i < numDocs; i++){
+        relevancies[i] = 0;
+    }
+    for(i = 0; i < numTerms; i++){
+        for(j = 0; j < numDocs; j++){
+            relevancies[j] += tf_idf_vals[i][j];
+        }
+    }
+}
+
+void stop_word(struct hashmap* hm, int numDocs){
+    int i, df, docSame;
     float idf;
     struct llnode* trav;
     char* curWord;
+    char doc [3] = "D_";
 
     for(i = 0; i < hm->num_buckets; i++){
         if(hm->map[i] == NULL){
@@ -222,61 +257,67 @@ void hm_rem_stop(struct hashmap* hm){
         trav = hm->map[i];
         while(trav != NULL){
             df = 0;
-            printf("trav->word = %s\n", trav->word);
-            if(hm_get(hm, trav->word, "D1") != -1){
-                df++;
+            for(i = 1; i <= numDocs; i++){
+                doc[1] = i + 48;
+                if(hm_get(hm, trav->word, doc) != -1){
+                    df++;
+                }
             }
-            if(hm_get(hm, trav->word, "D2") != -1){
-                df++;
-            }
-            if(hm_get(hm, trav->word, "D3") != -1){
-                df++;
-            }
-            printf("document freq: %d\n", df);
             if(!df){        //df == 0
                 idf = log(3.0/1.0+df);
             }else{
                 idf = log(3.0/df);
             }
             if(!idf){       //idf == 0
-                hm_remove(hm, trav->word, "D1");
-                hm_remove(hm, trav->word, "D2");
-                hm_remove(hm, trav->word, "D3");
-
+                for(i = 1; i <= numDocs; i++){
+                    doc[1] = i + 48;
+                    hm_remove(hm, trav->word, doc);
+                }
             }
             trav = trav->next;
         }
     }
 }
 
-void hm_query(struct hashmap* hm, char* query){
-    int index, offset;
+void read_query(struct hashmap* hm, char* query, int numDocs){
+    int i;
+    int numTerms = 10;                                             
+    float **tf_idf_vals = (float**) malloc(sizeof(float*) * numTerms);
+    for(i = 0; i < numTerms; i++){
+        tf_idf_vals[i] = (float*) malloc(sizeof(float) * numDocs);
+    }
     char* searchQ = malloc(strlen(query) + 1);
     strcpy(searchQ, query);
     char* c;
-    hm_rem_stop(hm);
-    printf("removed stop words");
     c = strtok(searchQ, " ");
+    i = 0;
     while(c != NULL){
-        printf("%s\n", c);
-        //search(hash, c);
+        //printf("%s\n", c);
+        search(hash, c, tf_idf_vals[i], numDocs);
         c = strtok(NULL, " ");
+        i++;
     }
+    rank(tf_idf_vals, numTerms, numDocs);
     //free(searchQ);
 }
 
-void search(struct hashmap* hm, char* word){
-    int bucket = hash(hm, word, "D1");  //placeholder, not used
-    struct llnode* trav = (struct llnode*) malloc(sizeof(struct llnode));
-    if(hm->map[bucket] == NULL){
-        return;
+void search(struct hashmap* hm, char* word, float* tf_idf_vals_word, int numDocs){
+    int tf, i;
+    //float *tf_vals = malloc(sizeof(float) * numDocs);
+    char doc [3] = "D_";
+    //char doc [3] = "D_";
+    //int docSame, wordSame;
+    //float idf;
+    
+    for(i = 0; i < numDocs; i++){                           // get termFrequency for word from each document
+        doc[1] = i + 49;
+        tf = hm_get(hm, word, doc);
+        if(tf == -1){
+            tf_idf_vals_word[i] = 0;                             // if doesn't exist, store 0 instead of -1 (from hm_get)
+        }else{
+            tf_idf_vals_word[i] = tf;                            // if exists store value
+        }
     }
-    trav = hm->map[bucket];
-    while(trav->next != NULL){
-        //count occurence of word, if 3 then it appears
-        // in all 3 documents -> df = 3
-    }
+    //rank(tf_vals, numDocs);
 
 }
-
-//idf = log(3.0/df);

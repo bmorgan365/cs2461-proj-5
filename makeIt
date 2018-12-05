@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+make
+./test << EOF
+6
+D1.txt
+y
+D2.txt
+y
+D3.txt
+n
+EOF
