@@ -64,7 +64,9 @@ void training(struct hashmap* hm, int docs){
         }while(curChar != EOF);
         fclose(document);                               //close file once done manipulation
     }
+    printHash(hm);
     stop_word(hm, docs);
+    printHash(hm);
 }
 /*
     Used to print hashMap values

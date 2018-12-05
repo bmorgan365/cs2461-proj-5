@@ -257,17 +257,20 @@ void stop_word(struct hashmap* hm, int numDocs){
         trav = hm->map[i];
         while(trav != NULL){
             df = 0;
+            printf("Word: %s\n", trav->word);
             for(i = 1; i <= numDocs; i++){
                 doc[1] = i + 48;
                 if(hm_get(hm, trav->word, doc) != -1){
                     df++;
                 }
             }
+            printf("DF: %d\n", df);
             if(!df){        //df == 0
-                idf = log(3.0/1.0+df);
+                idf = log(numDocs/1.0+df);
             }else{
-                idf = log(3.0/df);
+                idf = log(numDocs/df);
             }
+            printf("idf: %f", idf);
             if(!idf){       //idf == 0
                 for(i = 1; i <= numDocs; i++){
                     doc[1] = i + 48;
@@ -292,8 +295,8 @@ void read_query(struct hashmap* hm, char* query, int numDocs){
     c = strtok(searchQ, " ");
     i = 0;
     while(c != NULL){
-        //printf("%s\n", c);
-        search(hash, c, tf_idf_vals[i], numDocs);
+        printf("%s\n", c);
+        //search(hash, c, tf_idf_vals[i], numDocs);
         c = strtok(NULL, " ");
         i++;
     }
