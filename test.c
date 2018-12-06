@@ -19,15 +19,17 @@ int main(void){
     scanf("%d", &numDocs);
     struct hashmap* hm = hm_create(numBuckets);
     training(hm, numDocs);
+    printf("Welcome to El Searcho!\n");
+
     do{
-        printf("Welcome to El Searcho!\n(S) Search\n(X) Exit\n(Anything else) Exit\nPlease enter selection: ");
+        printf("(S) Search\n(X) Exit\n(Anything else) Exit\nPlease enter selection: ");
         scanf(" %c", &choice);
         if(toupper(choice) == 'S'){
             printf("Please enter your query: ");
             scanf(" %[^\n]s", query);
             read_query(hm, query, numDocs);
-            printf("Perform another search? ");
-            scanf(" %c", &choice);
+            printf("Search Completed!\n");
+            //scanf(" %c", &choice);
         }
     }while(toupper(choice) == 'S');
 
@@ -85,17 +87,3 @@ void printHash(struct hashmap* hm){
         }
     }
 }
-
-    //int dBaseCh;                    // used for strcmp of current word to database
-    //int dBaseVals [15];             // values for each row (1 -10), to keep count of words
-    
-    //char** wordDbase;               // "string" array with encountered words, 10 words, 15 characters each
-    
-    // for(i = 0; i < 15; i++){                                        // initialize "num word" values to zero
-    //     dBaseVals[i] = 0;
-    // }                          
-    // wordDbase = (char**) malloc(sizeof(char*) * 15);                // initialize wordDbase to null for each of 15 words (15 chars each)
-    // for(i = 0; i < 15; i++){
-    //     wordDbase[i] = (char*) malloc(sizeof(char) * 15);
-    //     strcpy(wordDbase[i], "");
-    // }

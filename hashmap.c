@@ -219,20 +219,21 @@ int hash(struct hashmap* hm, char* word){
 void rank(double** tf_idf_vals, int numTerms, int numDocs){
     int i, j, df;
     double idf;
-    double tf_idf;
-    double* relevancies = (double*) malloc(sizeof(double) * numDocs);
+    double* relevancies = (double*) malloc(sizeof(double) * numDocs);           // used to store the relevancies
     for(i = 0; i < numDocs; i++){
         relevancies[i] = 0;
     }
 
-    for(i = 0; i < numTerms; i++){                   // if term frequency isnt zero, increment document frequency
+    // calculates tf-idf scores
+    // * at this point, tf_idf_vals contains term frequencys per document*
+    for(i = 0; i < numTerms; i++){                                              
         df = 0;
-        for(j = 0; j < numDocs; j++){
-            if(tf_idf_vals[i][j]){
+        for(j = 0; j < numDocs; j++){                                           //for each term, determine document frequency
+            if(tf_idf_vals[i][j]){                                              
                 df++;
             }
         }
-        idf = log((double)numDocs/df) / log(10);  
+        idf = log((double)numDocs/df) / log(10);                                // compute idf value for term and store in array
         for(j = 0; j < numDocs; j++){
             if(tf_idf_vals[i][j]){
                 tf_idf_vals[i][j] = tf_idf_vals[i][j] * idf;
@@ -240,24 +241,20 @@ void rank(double** tf_idf_vals, int numTerms, int numDocs){
         }
     }    
     
-    printf("Stored Values: \n");
-    for(i = 0; i < numTerms; i++){
-        for(j = 0; j < numDocs; j++){
-            printf("%.2lf ", tf_idf_vals[i][j]);
-        }
-        printf("\n");
-    }
-    
-    for(i = 0; i < numTerms; i++){
+    for(i = 0; i < numTerms; i++){                                              //sum of relevancy values from each document
         for(j = 0; j < numDocs; j++){
             relevancies[j] += tf_idf_vals[i][j];
         }
     }
 
-    printf("Relevancies: \n");
+    printf("Relevancies: \n");                                                  // print out list of documents (unsorted)
     for(i = 0; i < numDocs; i++){
-        printf("Doc: %d Value: %.2lf\n", (i+1), relevancies[i]);
+        printf("Document: %d Relevancy: %.2lf\n", (i+1), relevancies[i]);
     }
+    printf("For best results, use the file with the highest relevancy!\n");
+
+    free(relevancies);
+
 }
 
 void stop_word(struct hashmap* hm, int numDocs){
@@ -316,20 +313,21 @@ void read_query(struct hashmap* hm, char* query, int numDocs){
     i = 0;
     c = strtok(searchQ, " ");
     while(c != NULL){
-        printf("%s\n", c);
         search(hm, c, tf_idf_vals[i], numDocs);
         c = strtok(NULL, " ");
         i++;
     }
     
     rank(tf_idf_vals, numTerms, numDocs);
-    //free(searchQ);
+    free(searchQ);
+    for(i = 0; i < numTerms; i++){
+        free(tf_idf_vals[i]);
+    }
 }
 
 void search(struct hashmap* hm, char* word, double* tf_idf_vals_word, int numDocs){
     int tf, i;
     char doc [3] = "D_";
-    //char w [] = "hello";
     
     for(i = 0; i < numDocs; i++){                           // get termFrequency for word from each document
         doc[1] = i + 49;
@@ -339,8 +337,5 @@ void search(struct hashmap* hm, char* word, double* tf_idf_vals_word, int numDoc
         }else{
             tf_idf_vals_word[i] = tf;                            // if exists store value
         }
-    }
-    for(i = 0; i < numDocs; i++){
-        printf("Index: %d Value: %f\n", i, tf_idf_vals_word[i]);
     }
 }
