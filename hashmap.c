@@ -220,6 +220,10 @@ void rank(double** tf_idf_vals, int numTerms, int numDocs){
     int i, j, df;
     double idf;
     double tf_idf;
+    double* relevancies = (double*) malloc(sizeof(double) * numDocs);
+    for(i = 0; i < numDocs; i++){
+        relevancies[i] = 0;
+    }
 
     for(i = 0; i < numTerms; i++){                   // if term frequency isnt zero, increment document frequency
         df = 0;
@@ -228,16 +232,22 @@ void rank(double** tf_idf_vals, int numTerms, int numDocs){
                 df++;
             }
         }
-        idf = log((double)numDocs/df) / log(10);
-        printf("IDF: %.4lf\n", idf);
+        idf = log((double)numDocs/df) / log(10);  
         for(j = 0; j < numDocs; j++){
-            tf_idf_vals[i][j] = tf_idf_vals[i][j] * idf;
+            if(tf_idf_vals[i][j]){
+                tf_idf_vals[i][j] = tf_idf_vals[i][j] * idf;
+            }
         }
     }    
-    double* relevancies = (double*) malloc(sizeof(double) * numDocs);
-    for(i = 0; i < numDocs; i++){
-        relevancies[i] = 0;
+    
+    printf("Stored Values: \n");
+    for(i = 0; i < numTerms; i++){
+        for(j = 0; j < numDocs; j++){
+            printf("%.2lf ", tf_idf_vals[i][j]);
+        }
+        printf("\n");
     }
+    
     for(i = 0; i < numTerms; i++){
         for(j = 0; j < numDocs; j++){
             relevancies[j] += tf_idf_vals[i][j];
@@ -246,14 +256,7 @@ void rank(double** tf_idf_vals, int numTerms, int numDocs){
 
     printf("Relevancies: \n");
     for(i = 0; i < numDocs; i++){
-        printf("Index: %d Value: %.4lf\n", i, relevancies[i]);
-    }
-    printf("Stored Values: \n");
-    for(i = 0; i < numTerms; i++){
-        for(j = 0; j < numDocs; j++){
-            printf("%.4lf ", tf_idf_vals[i][j]);
-        }
-        printf("\n");
+        printf("Doc: %d Value: %.2lf\n", (i+1), relevancies[i]);
     }
 }
 
@@ -270,21 +273,18 @@ void stop_word(struct hashmap* hm, int numDocs){
         trav = hm->map[i];
         while(trav != NULL){
             df = 0;
-            printf("Word: %s\n", trav->word);
             for(j = 1; j <= numDocs; j++){
                 doc[1] = j + 48;
                 if(hm_get(hm, trav->word, doc) != -1){
                     df++;
                 }
             }
-            printf("DF: %d\n", df);
             if(!df){        //df == 0
-                idf = log((double)numDocs/1.0+df);
+                idf = log((double)numDocs/1+df) /log(10);
 
             }else{
                 idf = log((double)numDocs/df) / log(10);
             }
-            printf("idf: %lf", idf);
             if(!idf){       //idf == 0
                 for(j = 1; j <= numDocs; j++){
                     doc[1] = j + 48;
@@ -297,23 +297,31 @@ void stop_word(struct hashmap* hm, int numDocs){
 }
 
 void read_query(struct hashmap* hm, char* query, int numDocs){
-    int i;
-    int numTerms = 10;                                             
-    double **tf_idf_vals = (double**) malloc(sizeof(double*) * numTerms);
+    int i, j;
+    int numTerms = 10;      
+    char* searchQ = malloc(strlen(query) + 1);
+    char* c;
+    strcpy(searchQ, query);
+                                           
+    double** tf_idf_vals = (double**) malloc(sizeof(double*) * numTerms);
     for(i = 0; i < numTerms; i++){
         tf_idf_vals[i] = (double*) malloc(sizeof(double) * numDocs);
     }
-    char* searchQ = malloc(strlen(query) + 1);
-    strcpy(searchQ, query);
-    char* c;
-    c = strtok(searchQ, " ");
+    for(i = 0; i < numTerms; i++){
+        for(j = 0; j < numDocs; j++){
+            tf_idf_vals[i][j] = 0.0;
+        }
+    }
+
     i = 0;
+    c = strtok(searchQ, " ");
     while(c != NULL){
         printf("%s\n", c);
         search(hm, c, tf_idf_vals[i], numDocs);
         c = strtok(NULL, " ");
         i++;
     }
+    
     rank(tf_idf_vals, numTerms, numDocs);
     //free(searchQ);
 }
@@ -321,6 +329,7 @@ void read_query(struct hashmap* hm, char* query, int numDocs){
 void search(struct hashmap* hm, char* word, double* tf_idf_vals_word, int numDocs){
     int tf, i;
     char doc [3] = "D_";
+    //char w [] = "hello";
     
     for(i = 0; i < numDocs; i++){                           // get termFrequency for word from each document
         doc[1] = i + 49;

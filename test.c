@@ -17,21 +17,21 @@ int main(void){
     scanf("%d", &numBuckets);
     printf("Please enter the number of documents(1 - 9).\nThey will be interpreted as D1.txt through Dn.txt, where n is the number of documents: ");
     scanf("%d", &numDocs);
-    struct hashmap* hash = hm_create(numBuckets);
-    training(hash, numDocs);
+    struct hashmap* hm = hm_create(numBuckets);
+    training(hm, numDocs);
     do{
         printf("Welcome to El Searcho!\n(S) Search\n(X) Exit\n(Anything else) Exit\nPlease enter selection: ");
         scanf(" %c", &choice);
         if(toupper(choice) == 'S'){
             printf("Please enter your query: ");
             scanf(" %[^\n]s", query);
-            read_query(hash, query, numDocs);
+            read_query(hm, query, numDocs);
             printf("Perform another search? ");
             scanf(" %c", &choice);
         }
     }while(toupper(choice) == 'S');
 
-    hm_destroy(hash);                                 //deallocate hashmap once done with client
+    hm_destroy(hm);                                 //deallocate hashmap once done with client
     printf("Hashmap deleted. Exiting. . .\n");
     return 0; 
 }
@@ -40,7 +40,7 @@ void training(struct hashmap* hm, int docs){
     int i;                          // for-loop incrementation
     int index;                      // index of word when storing from file
     char curChar;                   // current character being read from file
-    char curWord [20];              // char[] to containing current word being read, "letters between spaces"
+    char curWord [21];              // char[] to containing current word being read, "letters between spaces"
     char docID [3] = "D_";          // char[] containing document ID
     char filename [7] = "D_.txt";   // char[] to store filename from user input
     FILE *document;                 // FILE* to access files for data input
@@ -64,9 +64,7 @@ void training(struct hashmap* hm, int docs){
         }while(curChar != EOF);
         fclose(document);                               //close file once done manipulation
     }
-    printHash(hm);
     stop_word(hm, docs);
-    printHash(hm);
 }
 /*
     Used to print hashMap values
@@ -84,7 +82,6 @@ void printHash(struct hashmap* hm){
             printf("Word: %s | DocID: %s | Occurrences: %d\n", entry->word, entry->document_id, entry->termFrequency);
             entry = entry->next;
             }
-            //printf("Word: %s | DocID: %s | Occurrences: %d\n", entry->word, entry->document_id, entry->termFrequency);
         }
     }
 }

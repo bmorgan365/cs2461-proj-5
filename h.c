@@ -4,10 +4,15 @@
 #include <math.h>
 
 int main(){
-    int docs = 3;
-    int df = 2;
-    double ret = log((double)docs / df) / log(10);
-
-    printf("log(%lf) = %lf", (double) docs / df, ret);
+    char* word = "computer";
+    int wordSum = 0;
+    int resetCharPtr = 0;
+    while(*word != '\0'){
+        wordSum += *word;
+        resetCharPtr++;
+        word++;
+    }
+    word -= resetCharPtr;
+    printf("Bucket %d",(wordSum % 5));
     return 0;
 }
