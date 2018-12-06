@@ -1,13 +1,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 int main(){
-    char doc [3] = "D_";
-    int i;
+    int docs = 3;
+    int df = 2;
+    double ret = log((double)docs / df) / log(10);
 
-    for(i = 1; i <= 3; i++){
-        doc[1] = i + 48;
-        printf("Doc: %s", doc);
-    }
+    printf("log(%lf) = %lf", (double) docs / df, ret);
+    return 0;
 }
